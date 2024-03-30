@@ -1,0 +1,6 @@
+build/**
+kernel.bin
+kernel.elf
+nvm.img
+filesys/**
+
