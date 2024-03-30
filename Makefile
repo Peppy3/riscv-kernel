@@ -8,7 +8,9 @@ OBJCOPY:=$(CROSS_COMPILE)objcopy
 DTC:=dtc
 MKIMAGE:=mkimage
 
-CFLAGS:=-Wall -Wextra -ffreestanding -nostdlib -ggdb -O1
+INCLUDE_DIR:=include
+
+CFLAGS:=-Wall -Wextra -ffreestanding -nostdlib -ggdb -O1 -I$(INCLUDE_DIR)
 
 SRC_DIR:=src
 BUILD_DIR:=build
@@ -32,6 +34,7 @@ $(KERN_ITB): $(KERN_ITB_SRC) $(KERN_BIN) $(DTB_OUT)
 
 ifeq ("", "$(DTB_SRC)")
 $(DTB_OUT):
+	$(info No dtb found, trying to dump from 'qemu-system-riscv64 -M virt')
 	qemu-system-riscv64 -M virt -machine dumpdtb=$@
 else
 $(DTB_OUT): $(patsubst %.dtb,%dtb,$(DTB_SRC))
@@ -50,7 +53,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) -c $< -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -Iinclude -c -mcmodel=medany $< -o $@
+	$(CC) $(CFLAGS) -c -mcmodel=medany $< -o $@
 
 .PHONY: clean
 clean:

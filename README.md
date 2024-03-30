@@ -3,10 +3,14 @@
 
 ### Depenencies
 
+Building:
 - riscv gcc toolchain
-- u-boot 
-- qemu (for emulation)
+- u-boot-tools
+- dtc
 
+Running:
+- u-boot
+- qemu-system-riscvXX
 
 ### Running
 
