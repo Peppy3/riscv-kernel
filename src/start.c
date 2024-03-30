@@ -2,13 +2,14 @@
 #include <stdint.h>
 
 #define SBI_DEBUG_CONSOLE 0x4442434E
+#define SBI_SYS_RESET     0x53525354
 
 struct sbiret {
 	int64_t error;
 	int64_t value;
-}
+};
 
-inline struct sbiret sbicall6(uint64_t eid, uint64_t fid,
+struct sbiret sbicall6(uint64_t eid, uint64_t fid,
 		uint64_t arg1, uint64_t arg2, uint64_t arg3, 
 		uint64_t arg4, uint64_t arg5, uint64_t arg6) {
 	int64_t error;
@@ -37,7 +38,7 @@ inline struct sbiret sbicall6(uint64_t eid, uint64_t fid,
 
 void start(void) {
 
-
+	(void)sbicall6(SBI_SYS_RESET, 1, 0, 0, 0, 0, 0, 0);
 
 	while (1);
 }

@@ -1,0 +1,38 @@
+/dts-v1/;
+
+/ {
+description = "Unknown kernel FIT image";
+#address-cells = <1>;
+
+images {
+
+	kernel {
+		description = "kernel";
+		data = /incbin/("./kernel.bin");
+		type = "kernel";
+		os = "invalid";
+		arch = "riscv";
+		compression = "none";
+		load = <0x80200000>;
+		entry = <0x80200000>;
+	};
+
+	fdt-1 {
+		description = "Flattened Device Tree blob";
+		data = /incbin/("./target.dtb");
+		type = "flat_dt";
+		arch = "riscv";
+		compression = "none";
+	};
+};
+
+configurations {
+        default = "conf-1";
+        conf-1 {
+			description = "kernel fit";
+			kernel = "kernel";
+			fdt = "fdt-1";
+        };
+};
+};
+
