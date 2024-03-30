@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+<<<<<<< HEAD
 #define SBI_DEBUG_CONSOLE 0x4442434E
 #define SBI_SYS_RESET     0x53525354
 
@@ -40,5 +41,10 @@ void start(void) {
 
 	(void)sbicall6(SBI_SYS_RESET, 1, 0, 0, 0, 0, 0, 0);
 
+=======
+#include <sbi.h>
+
+void start(void) {
+>>>>>>> refs/remotes/origin/main
 	while (1);
 }

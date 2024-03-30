@@ -14,7 +14,7 @@ SRC_DIR:=src
 BUILD_DIR:=build
 
 ASFILES:=$(SRC_DIR)/entry.S
-CFILES:=$(SRC_DIR)/start.c
+CFILES:=$(SRC_DIR)/sbi.c $(SRC_DIR)/start.c
 OFILES:=$(patsubst $(SRC_DIR)/%.S,$(BUILD_DIR)/%.o,$(ASFILES)) \
 		$(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(CFILES))
 
@@ -50,7 +50,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) -c $< -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -c -mcmodel=medany $< -o $@
+	$(CC) $(CFLAGS) -Iinclude -c -mcmodel=medany $< -o $@
 
 .PHONY: clean
 clean:
