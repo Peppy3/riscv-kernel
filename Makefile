@@ -12,8 +12,10 @@ CFLAGS:=-Wall -Wextra -ffreestanding -nostdlib -ggdb -O1
 SRC_DIR:=src
 BUILD_DIR:=build
 
-
-OFILES:=$(BUILD_DIR)/entry.o
+ASFILES:=$(SRC_DIR)/entry.S
+CFILES:=$(SRC_DIR)/start.c
+OFILES:=$(patsubst $(SRC_DIR)/%.S,$(BUILD_DIR)/%.o,$(ASFILES)) \
+		$(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(CFILES))
 
 KERN_ELF:=kernel.elf
 KERN_BIN:=kernel.bin

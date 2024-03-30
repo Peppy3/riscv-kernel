@@ -25,6 +25,8 @@ _entry:
 
 	/* set up initial stack pointer */
 	la sp, __boot_core_stack_end
+	
+	tail start
 
 spin:
 	j spin
