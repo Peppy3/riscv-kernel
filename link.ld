@@ -5,14 +5,19 @@ ENTRY(_entry)
 
 SECTIONS {
 	/* start address */
-	. = 0x80200000;
+	. = 0x84000000;
 
 	__start = .;
 	__text_start = .;
 	.text : {
 		KEEP(*(.text.entry))
+
+		/* multiboot header */
+		ASSERT(. - __text_start > 32768, "error: entry too big!");
+		. = ALIGN(8);
+		KEEP(*(.multiboot))
+
 		*(.text)
-		
 		/* trampoline */
 		. = ALIGN(4096);
 		__trampoline_start = .;

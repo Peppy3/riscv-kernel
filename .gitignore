@@ -1,6 +1,7 @@
 build/**
 kernel.bin
 kernel.elf
+kernel.map
 nvm.img
 filesys/**
-
+.vsccode/**

@@ -24,7 +24,7 @@ KERN_ITB_SRC:=kernel.its
 
 KERN_ELF:=kernel.elf
 KERN_BIN:=kernel.bin
-KERN_ITB:=kernel.idb
+KERN_ITB:=kernel.itb
 
 DTB_SRC?=
 DTB_OUT:=target.dtb
@@ -35,7 +35,7 @@ $(KERN_ITB): $(KERN_ITB_SRC) $(KERN_BIN) $(DTB_OUT)
 ifeq ("", "$(DTB_SRC)")
 $(DTB_OUT):
 	$(info No dtb found, trying to dump from 'qemu-system-riscv64 -M virt')
-	qemu-system-riscv64 -M virt -machine dumpdtb=$@
+	qemu-system-riscv64 -M virt -smp 4 -m 512M -machine dumpdtb=$@
 else
 $(DTB_OUT): $(patsubst %.dtb,%dtb,$(DTB_SRC))
 	$(DTC) -I dts $< -O dtb $@
@@ -47,7 +47,7 @@ $(KERN_BIN): $(KERN_ELF)
 	$(OBJCOPY) $< -O binary $@
 
 $(KERN_ELF): $(OFILES)
-	$(LD) --no-dynamic-linker -T link.ld $+ -o $@
+	$(LD) --no-dynamic-linker -T link.ld -Map=kernel.map $+ -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.S
 	$(CC) -c $< -o $@
