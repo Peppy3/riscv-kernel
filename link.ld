@@ -10,19 +10,16 @@ SECTIONS {
 	__start = .;
 	__text_start = .;
 	.text : {
-		KEEP(*(.text.entry))
-
-		/* multiboot header */
-		ASSERT(. - __text_start > 32768, "error: entry too big!");
-		. = ALIGN(8);
-		KEEP(*(.multiboot))
+		/* Header for linux kernel image */
+		KEEP(*(.text.header))
 
 		*(.text)
 		/* trampoline */
 		. = ALIGN(4096);
 		__trampoline_start = .;
 		*(.trampoline)
-		/*ASSERT(. - __trampoline_start == 4096, 
+		/*
+		ASSERT(. - __trampoline_start == 4096, 
 			"error: trampoline larger than one page");
 		*/
 	}
