@@ -8,7 +8,7 @@ images {
 
 	kernel-1 {
 		description = "kernel";
-		data = /incbin/("kernel.bin");
+		data = /incbin/("kernel.img");
 		type = "kernel";
 		os = "linux";
 		arch = "riscv";

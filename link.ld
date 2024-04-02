@@ -13,7 +13,7 @@ SECTIONS {
 		/* Header for linux kernel image */
 		KEEP(*(.text.header))
 
-		*(.text)
+		KEEP(*(.text))
 		/* trampoline */
 		. = ALIGN(4096);
 		__trampoline_start = .;

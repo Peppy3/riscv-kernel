@@ -4,7 +4,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SBI_DEBUG_CONSOLE 0x4442434E
+#define SBI_EXT_BASE 0x10
+#define SBI_EXT_DEBUG 0x4442434E
+#define SBI_EXT_TIMER 0x54494D45
+#define SBI_EXT_IPI 0x735049
+#define SBI_EXT_RFENCE 0x52464E43
+#define SBI_EXT_HSM 0x48534D
+#define SBI_EXT_RESET 0x53525354
+#define SBI_EXT_PERF 0x4442434E
+#define SBI_EXT_SUSPEND 0x53555350
 
 #define SBI_IMPL_BBL 0L
 #define SBI_IMPL_OPENSBI 1L
@@ -63,6 +71,27 @@ SBIret sbicall2(uint64_t eid, uint64_t fid,
 SBIret sbicall1(uint64_t eid, uint64_t fid,
 		uint64_t arg1);
 SBIret sbicall0(uint64_t eid, uint64_t fid);
+
+long sbicall4_legacy(unsigned long eid, 
+		unsigned long arg1, unsigned long arg2, unsigned long arg3,
+		unsigned long arg4);
+long sbicall3_legacy(unsigned long eid, 
+		unsigned long arg1, unsigned long arg2, unsigned long arg3);
+long sbicall1_legacy(unsigned long eid, unsigned long arg1);
+long sbicall0_legacy(unsigned long eid);
+
+// DEPRECATED, use other extentions if supported
+long sbi_legacy_set_timer(unsigned long long stime_val);
+long sbi_legacy_putchar(int ch);
+long sbi_legacy_getchar(void);
+long sbi_legacy_clear_ipi(void);
+long sbi_legacy_send_ipi(const unsigned long *hart_mask);
+long sbi_legacy_remote_fence_i(const unsigned long *hart_mask);
+long sbi_legacy_remote_sfence_vma(const unsigned long *hart_mask, 
+		unsigned long start, unsigned long size);
+long sbi_legacy_remote_sfence_vma_asid(const unsigned long *hart_mask,
+		unsigned long start, unsigned long size, unsigned long asid);
+void sbi_legacy_shutdown(void);
 
 // Base Extension (EID #0x10)
 int64_t sbi_get_spec_version();
