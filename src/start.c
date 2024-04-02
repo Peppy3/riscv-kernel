@@ -1,11 +1,13 @@
 #include <stddef.h>
 
+#include <cpu.h>
 #include <klib/common.h>
+#include <klib/spinlock.h>
 
 #include <sbi.h>
 #include <dtb.h>
 
-typedef long hartid_t;
+#include <riscv.h>
 
 long legacy_print(const char *s) {
 	long err = 0;
@@ -17,9 +19,16 @@ long legacy_print(const char *s) {
 }
 
 void start(hartid_t boot_hartid, dtb_t* dtb_location) {
-	legacy_print("Hello Kernel World!\r\n");
+	cpu_t hart = { 0 };
+	hart.id = boot_hartid;
+	asm volatile ("mv tp, %0" : : "r" (&hart));
+	
+	spinlock_t sl;
+	spinlock_init(&sl);
 
-	(void)sbicall0_legacy(0x08);
+	spinlock_aquire(&sl);
+	
+	legacy_print("I'm in an infinite spinlock\r\n");
 
 	while (1);
 }

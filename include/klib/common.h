@@ -9,5 +9,4 @@ typedef unsigned long ulong;
 typedef long long llong;
 typedef unsigned long long ullong;
 
-
 #endif /* KLIB_H */
