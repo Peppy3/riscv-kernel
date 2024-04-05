@@ -9,7 +9,7 @@ MKIMAGE:=mkimage
 
 INCLUDE_DIR:=include
 
-CFLAGS:=-Wall -Wextra -ffreestanding -nostdlib -ggdb -O3 -I$(INCLUDE_DIR)
+CFLAGS:=-Wall -Wextra -ffreestanding -nostdlib -ggdb -O1 -I$(INCLUDE_DIR)
 MCMODEL:=medany 
 
 SRC_DIR:=src

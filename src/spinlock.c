@@ -3,7 +3,7 @@
 
 #include <klib/common.h>
 
-#include <klib/spinlock.h>
+#include <spinlock.h>
 
 void spinlock_init(spinlock_t *sl) {
 	sl->lock = 0;

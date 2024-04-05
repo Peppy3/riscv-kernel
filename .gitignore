@@ -4,4 +4,4 @@ kernel.elf
 kernel.map
 nvm.img
 filesys/**
-.vsccode/**
+.vscode/**
