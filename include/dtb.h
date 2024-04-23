@@ -2,30 +2,28 @@
 #define DTB_H
 
 #include <stdint.h>
-#include <stdbool.h>
 
 #define DTB_VERSION 17 // what version we have an implementation for
 
 // keep this a secret to all other funcitons
-typedef void dtb_t;
+typedef void Dtb;
 
-// verify magic and version
-bool dtb_verify(dtb_t *dtb);
+// verif magic and version
+int dtb_verify(Dtb *dtb);
 
 // total size of the dtb ram file
-uint32_t dtb_size(dtb_t *dtb);
+uint32_t dtb_size(Dtb *dtb);
 
 
-struct dtb_rsmap_entry {
-	void *addr;
-	long size;
-};
+typedef struct DtbRsmapEntry {
+	uintptr_t addr;
+	uint64_t size;
+} DtbRsmapEntry;
 
 // only use the result for dtb_rsmap_iterator_next()
-void *dtb_rsmap_get(dtb_t *dtb);
+DtbRsmapEntry *dtb_rsmap_iter_get(Dtb *dtb);
 
 // result is in little endian
-// TODO: make it processor endian
-struct dtb_rsmap_entry dtb_rsmap_next(void **iterator);
+int dtb_rsmap_next(DtbRsmapEntry **iterator);
 
 #endif /* DTB_H */

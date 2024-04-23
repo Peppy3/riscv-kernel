@@ -1,23 +1,21 @@
 #ifndef CPU_H
 #define CPU_H
 
+#include <stdint.h>
 #include <stdbool.h>
 
-typedef long hartid_t;
+typedef int64_t Hartid;
 
-typedef struct cpu {
-	hartid_t id;
+typedef struct Hart {
+	Hartid id;
 
 	long intr_npush;
 	long intr_initial; // state before we pushed interupts
-} cpu_t;
+} Hart;
 
-// poitner to the cpu struct for the hart is in register 'tp' which
-// we're unable to get to in C
-static inline cpu_t *cpu(void) {
-	register cpu_t *hart asm("tp");
-	return hart;
-}
+void hart_init(Hartid id, Hart* hart);
+
+Hart *hart(void);
 
 // hardware interupts
 void inter_push(void);

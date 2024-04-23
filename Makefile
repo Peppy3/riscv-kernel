@@ -1,5 +1,5 @@
 
-CROSS_COMPILE:=riscv64-linux-gnu-
+CROSS_COMPILE ?= riscv64-linux-gnu-
 
 CC:=$(CROSS_COMPILE)gcc
 LD:=$(CROSS_COMPILE)ld
@@ -9,7 +9,7 @@ MKIMAGE:=mkimage
 
 INCLUDE_DIR:=include
 
-CFLAGS:=-Wall -Wextra -ffreestanding -nostdlib -ggdb -O1 -I$(INCLUDE_DIR)
+CFLAGS:=-Wall -Wextra -Wvla -ffreestanding -fno-builtin -nostdlib -ggdb -O1 -I$(INCLUDE_DIR)
 MCMODEL:=medany 
 
 SRC_DIR:=src
@@ -24,7 +24,7 @@ KERN_IMG:=kernel.img
 KERN_ITB:=kernel.itb
 KERN_LINK_MAP:=kernel.map
 
-KERN_ARTIFACTS:=$(KERN_ELF) $(KERN_IMG) $(KERN_ITB)
+KERN_ARTIFACTS:=$(KERN_ELF) $(KERN_IMG) $(KERN_ITB) $(KERN_LINK_MAP)
 
 SRC_FILES:=$(foreach suff,c S,$(shell find $(SRC_DIR) -name '*.$(suff)'))
 OFILES:=$(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%.o,$(SRC_FILES))
@@ -38,8 +38,8 @@ $(KERN_ITB): $(KERN_ITB_SRC) $(KERN_IMG) $(DTB_OUT) $(KERN_LINK_MAP)
 
 ifeq ("", "$(DTB_SRC)")
 $(DTB_OUT):
-	$(info [INFO]: No external dtb found. Trying to dump from 'qemu-system-riscv64 -M virt -smp 4 -m 512M')
-	@qemu-system-riscv64 -M virt -smp 4 -m 512M -machine dumpdtb=$@
+	$(info [INFO]: No external dtb found. Trying to dump from 'qemu-system-riscv64 -M virt -smp 4 -m 1G')
+	@qemu-system-riscv64 -M virt -smp 4 -m 1G -machine dumpdtb=$@
 else
 $(DTB_OUT): $(patsubst %.dtb,%dtb,$(DTB_SRC))
 	$(DTC) -I dts $< -O dtb $@
@@ -50,7 +50,8 @@ $(KERN_IMG): $(KERN_ELF)
 
 # Link everything 
 $(KERN_ELF): $(OFILES)
-	$(LD) --no-dynamic-linker -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP) $+ -o $@
+	@echo "-O1 --no-dynamic-linker -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP)"
+	@$(LD) -O1 --no-dynamic-linker -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP) $+ -o $@
 
 $(BUILD_DIR)/%.S.o: $(SRC_DIR)/%.S
 	@mkdir -p $(dir $@)

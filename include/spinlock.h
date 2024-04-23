@@ -4,13 +4,13 @@
 #include <klib/common.h>
 #include <cpu.h>
 
-typedef struct spinlock {
+typedef struct Spinlock {
 	uint lock;
-	cpu_t *hartid; // who's holding it
-} spinlock_t;
+	Hartid hartid; // who's holding it
+} Spinlock;
 
-void spinlock_init(spinlock_t *sl);
-void spinlock_aquire(struct spinlock *sl);
-void spinlock_release(struct spinlock *sl);
+void spinlock_init(Spinlock *sl);
+void spinlock_aquire(Spinlock *sl);
+void spinlock_release(Spinlock *sl);
 
 #endif /* SPINLOCK_H */

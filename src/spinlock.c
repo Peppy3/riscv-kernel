@@ -5,14 +5,14 @@
 
 #include <spinlock.h>
 
-void spinlock_init(spinlock_t *sl) {
+void spinlock_init(Spinlock *sl) {
 	sl->lock = 0;
-	sl->hartid = NULL;
+	sl->hartid = -1;
 }
 
-void spinlock_aquire(struct spinlock *sl) {
+void spinlock_aquire(Spinlock *sl) {
 	// am I holding the lock?
-	if (sl->hartid == cpu())
+	if (sl->hartid == hart()->id)
 		return;
 	
 	inter_push();
@@ -24,17 +24,17 @@ void spinlock_aquire(struct spinlock *sl) {
 	// fence for atomic swap
 	__sync_synchronize();
 	
-	sl->hartid = cpu();
+	sl->hartid = hart()->id;
 	return;
 }
 
-void spinlock_release(struct spinlock *sl) {
+void spinlock_release(Spinlock *sl) {
 	/*
 	if (!(sl->hartid == cpu()))
 		panic();
 	*/
 	
-	sl->hartid = NULL;
+	sl->hartid = -1;
 	
 	// fence
 	__sync_synchronize();

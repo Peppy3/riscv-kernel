@@ -3,18 +3,18 @@
 
 // Endian swap functions
 
-#include <klib/common.h>
+#include <stdint.h>
 
-static inline ushort swap16(ushort val) {
+static inline uint16_t swap16(uint16_t val) {
 	return (val << 8) | (val >> 8);
 }
 
-static inline uint swap32(uint val) {
+static inline uint32_t swap32(uint32_t val) {
 	val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF ); 
 	return (val << 16) | (val >> 16);
 }
 
-static inline ullong swap64(ullong val) {
+static inline uint64_t swap64(uint64_t val) {
 	val =	((val << 8) & 0xFF00FF00FF00FF00ULL ) | 
 			((val >> 8) & 0x00FF00FF00FF00FFULL );
 
@@ -23,7 +23,7 @@ static inline ullong swap64(ullong val) {
 	return (val << 32) | (val >> 32);
 }
 
-static inline uint swap32_from_be(uint val) {
+static inline uint32_t swap32_from_be(uint32_t val) {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF ); 
 	return (val << 16) | (val >> 16);
@@ -32,7 +32,7 @@ static inline uint swap32_from_be(uint val) {
 #endif
 }
 
-static inline uint swap32_from_le(uint val) {
+static inline uint32_t swap32_from_le(uint32_t val) {
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 	val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF ); 
 	return (val << 16) | (val >> 16);
@@ -41,7 +41,7 @@ static inline uint swap32_from_le(uint val) {
 #endif
 }
 
-static inline ullong swap64_from_be(ullong val) {
+static inline uint64_t swap64_from_be(uint64_t val) {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	val =	((val << 8) & 0xFF00FF00FF00FF00ULL ) | 
 			((val >> 8) & 0x00FF00FF00FF00FFULL );
@@ -54,7 +54,7 @@ static inline ullong swap64_from_be(ullong val) {
 #endif
 }
 
-static inline ullong swap64_from_le(ullong val) {
+static inline uint64_t swap64_from_le(uint64_t val) {
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 	val =	((val << 8) & 0xFF00FF00FF00FF00ULL ) | 
 			((val >> 8) & 0x00FF00FF00FF00FFULL );

@@ -26,8 +26,8 @@ linux_header:
 .word 2					// version
 .word 0 				// res1
 .dword 0 				// res2
-.ascii "RISCV\0\0\0"	// magic1 (deprecated)
-.ascii "RSC\x5"			// magic2 
+.dword 0x5643534952		// magic1 (deprecated)
+.word 0x05435352		// magic2 
 .word 0 				// res3 reserved for PE COFF offset
 
 

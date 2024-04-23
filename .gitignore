@@ -1,4 +1,5 @@
 build/**
+buildtools/**
 kernel.bin
 kernel.elf
 kernel.map
