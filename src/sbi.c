@@ -3,162 +3,148 @@
 
 #include <sbi.h>
 
-SBIret sbicall6(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2, uint64_t arg3, 
-		uint64_t arg4, uint64_t arg5, uint64_t arg6) {
-	int64_t error;
-	uint64_t value;
+SBIret sbicall6(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2, unsigned long arg3, 
+		unsigned long arg4, unsigned long arg5, unsigned long arg6) {
+	register unsigned long a0 asm ("a0") = arg1;
+	register unsigned long a1 asm ("a1") = arg2;
+	register unsigned long a2 asm ("a2") = arg3;
+	register unsigned long a3 asm ("a3") = arg4;
+	register unsigned long a4 asm ("a4") = arg5;
+	register unsigned long a5 asm ("a4") = arg6;
+
+	register unsigned long a6 asm ("a6") = fid;
+	register unsigned long a7 asm ("a7") = eid;
 
 	asm volatile (
-			"mv a0, %2\n\t"
-			"mv a1, %3\n\t"
-			"mv a2, %4\n\t"
-			"mv a3, %5\n\t"
-			"mv a4, %6\n\t"
-			"mv a5, %7\n\t"
-			"mv a6, %8\n\t"
-			"mv a7, %9\n\t"
-			"ecall\n\t"
-			"mv %0, a0\n\t"
-			"mv %1, a1\n\t"
-			: "=r" (error), "=r" (value)
-			: "r" (arg1), "r" (arg2), "r" (arg3),
-			  "r" (arg4), "r" (arg5), "r" (arg6),
-			  "r" (fid), "r" (eid)
+			"ecall"
+			: "+r" (a0), "+r" (a1)
+			: "r" (a0), "r" (a1), "r" (a2), "r" (a3), "r" (a4), "r" (a5),
+			"r" (a6), "r" (a7)
+			: "memory"
 			);
 
-	return (SBIret){error, value};
+	return (SBIret){.error = a0, .value = a1};
 }
 
-SBIret sbicall5(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2, uint64_t arg3, 
-		uint64_t arg4, uint64_t arg5) {
-	int64_t error;
-	uint64_t value;
+SBIret sbicall5(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2, unsigned long arg3, 
+		unsigned long arg4, unsigned long arg5) {
+	register unsigned long a0 asm ("a0") = arg1;
+	register unsigned long a1 asm ("a1") = arg2;
+	register unsigned long a2 asm ("a2") = arg3;
+	register unsigned long a3 asm ("a3") = arg4;
+	register unsigned long a4 asm ("a4") = arg5;
+
+	register unsigned long a6 asm ("a6") = fid;
+	register unsigned long a7 asm ("a7") = eid;
 
 	asm volatile (
-			"mv a0, %2\n\t"
-			"mv a1, %3\n\t"
-			"mv a2, %4\n\t"
-			"mv a3, %5\n\t"
-			"mv a4, %6\n\t"
-			"mv a6, %7\n\t"
-			"mv a7, %8\n\t"
-			"ecall\n\t"
-			"mv %0, a0\n\t"
-			"mv %1, a1\n\t"
-			: "=r" (error), "=r" (value)
-			: "r" (arg1), "r" (arg2), "r" (arg3),
-			  "r" (arg4), "r" (arg5),
-			  "r" (fid), "r" (eid)
+			"ecall"
+			: "+r" (a0), "+r" (a1)
+			: "r" (a0), "r" (a1), "r" (a2), "r" (a3), "r" (a4),
+			"r" (a6), "r" (a7)
+			: "memory"
 			);
 
-	return (SBIret){error, value};
+	return (SBIret){.error = a0, .value = a1};
 }
 
-SBIret sbicall4(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2, uint64_t arg3, 
-		uint64_t arg4) {
-	int64_t error;
-	uint64_t value;
+SBIret sbicall4(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2, unsigned long arg3, 
+		unsigned long arg4) {
+	register unsigned long a0 asm ("a0") = arg1;
+	register unsigned long a1 asm ("a1") = arg2;
+	register unsigned long a2 asm ("a2") = arg3;
+	register unsigned long a3 asm ("a3") = arg4;
+
+	register unsigned long a6 asm ("a6") = fid;
+	register unsigned long a7 asm ("a7") = eid;
 
 	asm volatile (
-			"mv a0, %2\n\t"
-			"mv a1, %3\n\t"
-			"mv a2, %4\n\t"
-			"mv a3, %5\n\t"
-			"mv a6, %6\n\t"
-			"mv a7, %7\n\t"
-			"ecall\n\t"
-			"mv %0, a0\n\t"
-			"mv %1, a1\n\t"
-			: "=r" (error), "=r" (value)
-			: "r" (arg1), "r" (arg2), "r" (arg3),
-			  "r" (arg4),
-			  "r" (fid), "r" (eid)
+			"ecall"
+			: "+r" (a0), "+r" (a1)
+			: "r" (a0), "r" (a1), "r" (a2), "r" (a3), 
+			"r" (a6), "r" (a7)
+			: "memory"
 			);
 
-	return (SBIret){error, value};
+	return (SBIret){.error = a0, .value = a1};
 }
 
-SBIret sbicall3(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2, uint64_t arg3) {
-	int64_t error;
-	uint64_t value;
+SBIret sbicall3(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2, unsigned long arg3) {
+	register unsigned long a0 asm ("a0") = arg1;
+	register unsigned long a1 asm ("a1") = arg2;
+	register unsigned long a2 asm ("a2") = arg3;
+	
+	register unsigned long a6 asm ("a6") = fid;
+	register unsigned long a7 asm ("a7") = eid;
 
 	asm volatile (
-			"mv a0, %2\n\t"
-			"mv a1, %3\n\t"
-			"mv a2, %4\n\t"
-			"mv a6, %5\n\t"
-			"mv a7, %6\n\t"
-			"ecall\n\t"
-			"mv %0, a0\n\t"
-			"mv %1, a1\n\t"
-			: "=r" (error), "=r" (value)
-			: "r" (arg1), "r" (arg2), "r" (arg3),
-			  "r" (fid), "r" (eid)
+			"ecall"
+			: "+r" (a0), "+r" (a1)
+			: "r" (a0), "r" (a1), "r" (a2),
+			"r" (a6), "r" (a7)
+			: "memory"
 			);
 
-	return (SBIret){error, value};
+	return (SBIret){.error = a0, .value = a1};
 }
 
-SBIret sbicall2(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2) {
-	int64_t error;
-	uint64_t value;
+SBIret sbicall2(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2) {
+	register unsigned long a0 asm ("a0") = arg1;
+	register unsigned long a1 asm ("a1") = arg2;
+
+	register unsigned long a6 asm ("a6") = fid;
+	register unsigned long a7 asm ("a7") = eid;
 
 	asm volatile (
-			"mv a0, %2\n\t"
-			"mv a1, %3\n\t"
-			"mv a6, %4\n\t"
-			"mv a7, %5\n\t"
-			"ecall\n\t"
-			"mv %0, a0\n\t"
-			"mv %1, a1\n\t"
-			: "=r" (error), "=r" (value)
-			: "r" (arg1), "r" (arg2),
-			  "r" (fid), "r" (eid)
+			"ecall"
+			: "+r" (a0), "+r" (a1)
+			: "r" (a0), "r" (a1), 
+			"r" (a6), "r" (a7)
+			: "memory"
 			);
 
-	return (SBIret){error, value};
+
+	return (SBIret){.error = a0, .value = a1};
 }
 
-SBIret sbicall1(uint64_t eid, uint64_t fid,
-		uint64_t arg1) {
-	int64_t error;
-	uint64_t value;
+SBIret sbicall1(unsigned long eid, unsigned long fid, unsigned long arg1) {
+	register unsigned long a0 asm ("a0") = arg1;
+	register unsigned long a1 asm ("a1");
+
+	register unsigned long a6 asm ("a6") = fid;
+	register unsigned long a7 asm ("a7") = eid;
 
 	asm volatile (
-			"mv a0, %2\n\t"
-			"mv a6, %3\n\t"
-			"mv a7, %4\n\t"
-			"ecall\n\t"
-			"mv %0, a0\n\t"
-			"mv %1, a1\n\t"
-			: "=r" (error), "=r" (value)
-			: "r" (arg1),
-			  "r" (fid), "r" (eid)
+			"ecall"
+			: "+r" (a0), "+r" (a1)
+			: "r" (a0), 
+			"r" (a6), "r" (a7)
+			: "memory"
 			);
 
-	return (SBIret){error, value};
+	return (SBIret){.error = a0, .value = a1};
 }
 
-SBIret sbicall0(uint64_t eid, uint64_t fid) {
-	int64_t error;
-	uint64_t value;
+SBIret sbicall0(unsigned long eid, unsigned long fid) {
+	register long a0 asm ("a0");
+	register long a1 asm ("a1");
+
+	register unsigned long a6 asm ("a6") = fid;
+	register unsigned long a7 asm ("a7") = eid;
 
 	asm volatile (
-			"mv a6, %2\n\t"
-			"mv a7, %3\n\t"
-			"ecall\n\t"
-			"mv %0, a0\n\t"
-			"mv %1, a1\n\t"
-			: "=r" (error), "=r" (value)
-			: "r" (fid), "r" (eid)
+			"ecall"
+			: "+r" (a0), "+r" (a1)
+			: "r" (a6), "r" (a7)
+			: "memory"
 			);
 
-	return (SBIret){error, value};
+	return (SBIret){.error = a0, .value = a1};
 }
 
 long sbicall4_legacy(unsigned long eid, 
@@ -170,7 +156,7 @@ long sbicall4_legacy(unsigned long eid,
 	register unsigned long a3 asm("a3") = arg3;
 	register unsigned long a4 asm("a4") = arg4;
 	register unsigned long a7 asm("a7") = eid;
-	asm ("ecall"
+	asm volatile ("ecall"
 			: "+r" (a0)
 			: "r" (a0), "r" (a1), "r" (a2), "r" (a3), "r" (a4), "r" (a7)
 			: "memory");
@@ -184,7 +170,7 @@ long sbicall3_legacy(unsigned long eid,
 	register unsigned long a2 asm("a2") = arg2;
 	register unsigned long a3 asm("a3") = arg3;
 	register unsigned long a7 asm("a7") = eid;
-	asm ("ecall"
+	asm volatile ("ecall"
 			: "+r" (a0)
 			: "r" (a0), "r" (a1), "r" (a2), "r" (a3), "r" (a7)
 			: "memory");
@@ -194,7 +180,7 @@ long sbicall3_legacy(unsigned long eid,
 long sbicall1_legacy(unsigned long eid, unsigned long arg1) {
 	register unsigned long a0 asm("a0") = arg1;
 	register unsigned long a7 asm("a7") = eid;
-	asm("ecall"
+	asm volatile ("ecall"
 			: "+r" (a0)
 			: "r" (a0), "r" (a7)
 			: "memory");
@@ -205,7 +191,7 @@ long sbicall1_legacy(unsigned long eid, unsigned long arg1) {
 long sbicall0_legacy(unsigned long eid) {
 	register long a0 asm("a0");
 	register unsigned long a7 asm("a7") = eid;
-	asm("ecall"
+	asm volatile ("ecall"
 			: "=r" (a0)
 			: "r" (a7)
 			: "memory");

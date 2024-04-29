@@ -1,5 +1,13 @@
 #include <stddef.h>
 
+size_t stridx(const char *s, int ch) {
+	size_t i = 0;
+	while (*s != (ch & 0xff) && *s) {
+		s++; i++;
+	}
+	return i;
+}
+
 size_t strlen(const char *s) {
 	if (s == NULL) return 0;
 	size_t len = 0;
@@ -21,17 +29,27 @@ size_t strnlen(const char *s, size_t maxlen) {
 char *strchr(char *str, int ch) {
 	size_t i = 0;
 	while (str[i] != 0) {
-		if (str[i] == (char)ch) {
+		if (str[i] == (ch & 0xff)) {
 			return &str[i];
 		}
 	}
 	return NULL;
 }
 
-int strncmp(const char *lhs, const char *rhs, size_t count) {
-	int i = 0;
+int strcmp(const char *lhs, const char *rhs) {
+	size_t i = 0;
 
-	while (lhs[i] == rhs[i] && --count && lhs[i]) {
+	while (lhs[i] == rhs[i] && lhs[i]) {
+		i++;
+	}
+
+	return lhs[i] - rhs[i];
+}
+
+int strncmp(const char *lhs, const char *rhs, size_t count) {
+	size_t i = 0;
+
+	while (lhs[i] == rhs[i] && lhs[i] && --count) {
 		i++;
 	}
 

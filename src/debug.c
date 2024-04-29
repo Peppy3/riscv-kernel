@@ -60,11 +60,11 @@ void print_int(int x, putchar_fn putchar, int dec, int sign) {
 	}
 }
 
-void print_ptr(ulong p, putchar_fn putchar) {
+void print_ptr(unsigned long p, putchar_fn putchar) {
 	putchar('0'); putchar('x');
 	int i = 0;
-	while (i < (int)(sizeof(ulong) * 2)) {
-		char ch = digits[p >> (sizeof(ulong) * 8 - 4)];
+	while (i < (int)(sizeof(unsigned long) * 2)) {
+		char ch = digits[p >> (sizeof(unsigned long) * 8 - 4)];
 		putchar(ch);
 
 		i++;

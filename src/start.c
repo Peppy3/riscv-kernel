@@ -1,7 +1,6 @@
 #include <stddef.h>
 
 #include <cpu.h>
-#include <klib/common.h>
 #include <klib/bswap.h>
 #include <debug.h>
 
@@ -11,11 +10,13 @@
 #include <riscv.h>
 
 
-void start(Hartid boot_hartid, Dtb *dtb) {
+void kmain(Hartid boot_hartid, Dtb *dtb) {
 	Hart hart;
 	hart_init(boot_hartid, &hart);
 	debug_init();
 	debug_what_console();
+
+	debug_printf("DTB @ %p\n", dtb);
 	
 	DtbRsmapEntry *rsmap = dtb_rsmap_iter_get(dtb);
 	if (dtb_rsmap_next(&rsmap)) do {
@@ -24,9 +25,9 @@ void start(Hartid boot_hartid, Dtb *dtb) {
 				(void *)(swap64_from_be(rsmap->addr) + swap64_from_be(rsmap->size)));
 	} while (dtb_rsmap_next(&rsmap));
 	else {
-		debug_printf("No Reserved memory blocks\n");
+		debug_puts("No Reserved memory blocks");
 	}
 
-
+	debug_puts("\ngoing into an infinite_loop");
 	while (1);
 }

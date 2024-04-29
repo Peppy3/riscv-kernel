@@ -10,7 +10,7 @@ MKIMAGE:=mkimage
 INCLUDE_DIR:=include
 
 CFLAGS:=-Wall -Wextra -Wvla -ffreestanding -fno-builtin -nostdlib -ggdb -O1 -I$(INCLUDE_DIR)
-MCMODEL:=medany 
+MCMODEL:=medany
 
 SRC_DIR:=src
 BUILD_DIR:=build
@@ -51,11 +51,11 @@ $(KERN_IMG): $(KERN_ELF)
 # Link everything 
 $(KERN_ELF): $(OFILES)
 	@echo "-O1 --no-dynamic-linker -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP)"
-	@$(LD) -O1 --no-dynamic-linker -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP) $+ -o $@
+	$(LD) -O1 --no-dynamic-linker -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP) $+ -o $@
 
 $(BUILD_DIR)/%.S.o: $(SRC_DIR)/%.S
 	@mkdir -p $(dir $@)
-	$(CC) -c $< -o $@
+	$(CC) $(CFLAGS) -D__ASSEMBLY__ -c -mcmodel=$(MCMODEL) $< -o $@
 
 $(BUILD_DIR)/%.c.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)

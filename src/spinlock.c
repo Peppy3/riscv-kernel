@@ -1,8 +1,6 @@
 #include <stddef.h>
 #include <cpu.h>
 
-#include <klib/common.h>
-
 #include <spinlock.h>
 
 void spinlock_init(Spinlock *sl) {

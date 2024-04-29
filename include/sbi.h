@@ -51,26 +51,26 @@
 #define HART_RESUME_PENDING 6L
 
 typedef struct {
-	int64_t error;
-	int64_t value;
+	long error;
+	long value;
 } SBIret;
 
-SBIret sbicall6(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2, uint64_t arg3, 
-		uint64_t arg4, uint64_t arg5, uint64_t arg6);
-SBIret sbicall5(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2, uint64_t arg3, 
-		uint64_t arg4, uint64_t arg5);
-SBIret sbicall4(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2, uint64_t arg3, 
-		uint64_t arg4);
-SBIret sbicall3(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2, uint64_t arg3);
-SBIret sbicall2(uint64_t eid, uint64_t fid,
-		uint64_t arg1, uint64_t arg2);
-SBIret sbicall1(uint64_t eid, uint64_t fid,
-		uint64_t arg1);
-SBIret sbicall0(uint64_t eid, uint64_t fid);
+SBIret sbicall6(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2, unsigned long arg3, 
+		unsigned long arg4, unsigned long arg5, unsigned long arg6);
+SBIret sbicall5(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2, unsigned long arg3, 
+		unsigned long arg4, unsigned long arg5);
+SBIret sbicall4(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2, unsigned long arg3, 
+		unsigned long arg4);
+SBIret sbicall3(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2, unsigned long arg3);
+SBIret sbicall2(unsigned long eid, unsigned long fid,
+		unsigned long arg1, unsigned long arg2);
+SBIret sbicall1(unsigned long eid, unsigned long fid,
+		unsigned long arg1);
+SBIret sbicall0(unsigned long eid, unsigned long fid);
 
 long sbicall4_legacy(unsigned long eid, 
 		unsigned long arg1, unsigned long arg2, unsigned long arg3,

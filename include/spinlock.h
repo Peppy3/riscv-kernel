@@ -1,11 +1,11 @@
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
 
-#include <klib/common.h>
+#include <type.h>
 #include <cpu.h>
 
 typedef struct Spinlock {
-	uint lock;
+	atomic_t lock;
 	Hartid hartid; // who's holding it
 } Spinlock;
 
