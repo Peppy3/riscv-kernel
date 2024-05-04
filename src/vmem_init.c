@@ -71,19 +71,40 @@ long mem_setup(const Dtb *dtb) {
 	uintptr_t address_cells = fdt_get_cell(address_cells_p, 1, 0);
 	uintptr_t size_cells = fdt_get_cell(size_cells_p, 1, 0);
 	
-	// FIXME:
-	// free all not used by the kernel at this point
-	// meaning all memory that's does not store kernel code
 	size_t num_mem_regions = (swap32_from_be(memory_reg_p->len) / sizeof(uint32_t)) / 4;
 	for (size_t i = 0; i < num_mem_regions; i += 4) {
 		uintptr_t mem_start = fdt_get_cell(memory_reg_p, address_cells, i);
 		uintptr_t mem_end = mem_start + fdt_get_cell(memory_reg_p, size_cells, i + 2);
 		
-		if (mem_start < (uintptr_t)__start || mem_end > kernel_end) {
+		if(	(mem_start < (uintptr_t)__start && mem_end < (uintptr_t)__start) ||
+			(mem_start > kernel_end && mem_end > kernel_end)) {
+			// the memory region is fully outside the kernel, so free the whole thing
+
+			free_range(mem_start, mem_end);
+		} else if(mem_start > (uintptr_t)__start && mem_end < kernel_end) {
+			// do nothing since the memory region is fully inside the kernel
+
+		} else if(mem_start < (uintptr_t)__start && 
+			(mem_end > (uintptr_t)__start && mem_end < kernel_end)) {
+			// start is outside the kernel, but end is inside
+
+			// free from mem_start to __start
 			free_range(mem_start, PAGE_ROUND_DOWN((uintptr_t)__start));
-			mem_start = kernel_end;
+		} else if(mem_end > kernel_end && 
+			(mem_start > (uintptr_t)__start && mem_start < kernel_end)) {
+			// start is inside the kernel, but end is outside
+
+			// free from kernel_end to mem_end
+			free_range(PAGE_ROUND_UP(kernel_end), mem_end);
+		} else if(mem_start < (uintptr_t)__start && mem_end > kernel_end) {
+			// mem_start is before __start but mem_end if after kernel_end
+			// this means the kernel is fully inside the memory region
+
+			// free from mem_start to __start
+			free_range(mem_start, PAGE_ROUND_DOWN((uintptr_t)__start));
+			// free from kernel_end to mem_end
+			free_range(PAGE_ROUND_UP(kernel_end), mem_end);
 		}
-		free_range(mem_start, mem_end);
 	}
 
 	return 0;
