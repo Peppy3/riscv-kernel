@@ -4,13 +4,13 @@
 #include <type.h>
 #include <cpu.h>
 
-typedef struct Spinlock {
+struct Spinlock {
 	atomic_t lock;
 	Hartid hartid; // who's holding it
-} Spinlock;
+};
 
-void spinlock_init(Spinlock *sl);
-void spinlock_aquire(Spinlock *sl);
-void spinlock_release(Spinlock *sl);
+void spinlock_init(struct Spinlock *sl);
+void spinlock_aquire(struct Spinlock *sl);
+void spinlock_release(struct Spinlock *sl);
 
 #endif /* SPINLOCK_H */

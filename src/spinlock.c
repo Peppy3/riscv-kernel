@@ -3,12 +3,12 @@
 
 #include <spinlock.h>
 
-void spinlock_init(Spinlock *sl) {
+void spinlock_init(struct Spinlock *sl) {
 	sl->lock = 0;
 	sl->hartid = -1;
 }
 
-void spinlock_aquire(Spinlock *sl) {
+void spinlock_aquire(struct Spinlock *sl) {
 	// am I holding the lock?
 	if (sl->hartid == hart()->id)
 		return;
@@ -26,7 +26,7 @@ void spinlock_aquire(Spinlock *sl) {
 	return;
 }
 
-void spinlock_release(Spinlock *sl) {
+void spinlock_release(struct Spinlock *sl) {
 	/*
 	if (!(sl->hartid == cpu()))
 		panic();

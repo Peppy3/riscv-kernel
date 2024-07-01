@@ -39,7 +39,7 @@ DtbRsmapEntry *dtb_rsmap_iter_get(const Dtb *dtb) {
 }
 
 int dtb_rsmap_next(DtbRsmapEntry **iterator) {
-	register DtbRsmapEntry *entry asm("t0") = *iterator;
+	DtbRsmapEntry *entry = *iterator;
 	
 	if (entry == NULL) return 0;
 	

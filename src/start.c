@@ -11,7 +11,7 @@
 
 
 void kmain(Hartid boot_hartid, Dtb *dtb) {
-	Hart hart;
+	struct Hart hart;
 	hart_init(boot_hartid, &hart);
 	debug_init();
 	debug_what_console();

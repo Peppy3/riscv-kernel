@@ -3,12 +3,12 @@
 
 // poitner to the cpu struct for the hart is in register 'tp' which
 // we're unable to get to in C
-Hart *hart(void) {
-	register Hart *hart asm("tp");
+struct Hart *hart(void) {
+	register struct Hart *hart asm("tp");
 	return hart;
 }
 
-void hart_init(Hartid id, Hart *hart) {
+void hart_init(Hartid id, struct Hart *hart) {
 	asm volatile ("mv tp, %0" : : "r" (hart));
 	hart->id = id;
 	hart->intr_npush = 0;

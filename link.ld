@@ -14,7 +14,7 @@ SECTIONS {
 	 * We want to move up to the negative space as quickly as possible
 	 */
 	. = 0x84000000;
-	__start = .;
+	PROVIDE(__start = .);
 	.text : {
 		__boot_start = .;
 		/* Header for linux kernel image */
@@ -71,5 +71,5 @@ SECTIONS {
 	. = ALIGN(4096);
 	__bss_end = .;
 	
-	__end = .;
+	PROVIDE(__end = .);
 }

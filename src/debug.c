@@ -8,11 +8,11 @@
 typedef int (*putchar_fn)(int);
 
 struct {
-	// Stupid backwards compatibility
 	// Both are blocking
+	// (Stupid backwards compatibility)
 	putchar_fn putchar;
 
-	Spinlock spinlock;
+	struct Spinlock spinlock;
 } dbg;
 
 int debug_con_putchar(int ch) {

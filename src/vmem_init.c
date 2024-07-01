@@ -3,55 +3,76 @@
 
 #include <klib/bswap.h>
 #include <klib/mem.h>
+#include <cpu.h>
 #include <dtb.h>
 
 #include <vmem.h>
 
-KernelMemoryMap kernel_map;
+// Start and end of kernel binary
+extern uint8_t __start[];
+extern uint8_t __end[];
 
-extern void *__start;
-extern void *__end;
+// Free list for physical memory
+struct FreeMemList {
+	struct FreeMemList *next;
+	size_t size; // Size of the free chunk must be alligned to it's size
+};
+
+struct {
+	struct Spinlock lock;
+	struct FreeMemList *freeList;
+} kernelMemoryMap;
+
+
+void kfree(void *physical_page) {
+	struct FreeMemList *new_top;
+
+	if (((uintptr_t)physical_page & (PAGE_SIZE - 1)) != 0 || (uint8_t *)physical_page < __end) {
+		// TODO: actually call panic
+		//panic("kfree");
+	}
+	
+	// 0x0F for "free"
+	memset(physical_page, 0x0F, PAGE_SIZE);
+
+	new_top = (struct FreeMemList *)physical_page;
+
+	spinlock_aquire(&kernelMemoryMap.lock);
+
+	// set the next pointer to the next free page
+	new_top->next = kernelMemoryMap.freeList;
+	new_top->size = PAGE_SIZE;
+	
+	// set the list top to the newly freed page
+	kernelMemoryMap.freeList = new_top;
+	
+	spinlock_release(&kernelMemoryMap.lock);
+}
 
 // Args should be aligned to a page boundry
-void free_range(const uintptr_t phys_start, const uintptr_t phys_end) {
-	uint8_t *curr_start = (uint8_t *)phys_start;
-	uintptr_t free_space_left = phys_end - phys_start;
-	FreeList *free_list = kernel_map.free_list;
-
-	while (free_space_left != 0) {
-		free_list = (FreeList *)curr_start; 
-
-		if (free_space_left & ~(FREE_TERA_CHUNK - 1)) {
-			*((FreeList *)curr_start) = (FreeList){NULL, FREE_TERA_CHUNK};
-			curr_start += FREE_TERA_CHUNK;
-		}
-		else if (free_space_left & ~(FREE_GIGA_CHUNK - 1)) {
-			*((FreeList *)curr_start) = (FreeList){NULL, FREE_GIGA_CHUNK};
-			curr_start += FREE_GIGA_CHUNK;
-		}
-		else if (free_space_left & ~(FREE_MEGA_CHUNK - 1)) {
-			*((FreeList *)curr_start) = (FreeList){NULL, FREE_MEGA_CHUNK};
-			curr_start += FREE_MEGA_CHUNK;
-		}
-		else if (free_space_left & ~(FREE_PAGE_CHUNK - 1)) {
-			*((FreeList *)curr_start) = (FreeList){NULL, FREE_PAGE_CHUNK};
-			curr_start += FREE_PAGE_CHUNK;
-		}
+void kfree_range(uintptr_t phys_start, uintptr_t phys_end) {
+	phys_start = PAGE_ROUND_UP(phys_start);
+	for (;phys_start + PAGE_SIZE <= phys_end; phys_start += PAGE_SIZE) {
+		kfree((void *)phys_start);
 	}
-
-	kernel_map.free_list = free_list;
 }
 
 /* This runs in early boot. It get called from asm */
 __attribute__ ((noplt))
-long mem_setup(const Dtb *dtb) {
-	memset(&kernel_map, 0, sizeof(KernelMemoryMap));
+long kmem_init(Hartid hartid, Dtb *dtb) {
+	// temp hart struct so we can use spinlocks
+	struct Hart tmp_hart;
+	hart_init(hartid, &tmp_hart);
 
-	register size_t dtb_len = dtb_size(dtb);
-	dtb = memcpy((void *)PAGE_ROUND_UP((uintptr_t)__end), dtb, dtb_len);
-	kernel_map.dtb_phys = dtb;
+	memset(&kernelMemoryMap, 0, sizeof kernelMemoryMap);
+	spinlock_init(&kernelMemoryMap.lock);
 
-	uintptr_t kernel_end = PAGE_ROUND_UP((uintptr_t)__end + dtb_len);
+	size_t dtb_len = dtb_size(dtb);
+	//dtb = memcpy((void *)PAGE_ROUND_UP((uintptr_t)&__end), dtb, dtb_len);
+
+	uintptr_t kernel_end = PAGE_ROUND_UP((((uintptr_t)dtb + dtb_len)> (uintptr_t)__end) 
+			? (uintptr_t)dtb + dtb_len : (uintptr_t)__end);
+		//PAGE_ROUND_UP((uintptr_t)dtb + dtb_len);
 	
 	// get the available memory from the dtb
 	FdtNode *root_node_p = fdt_get_node(dtb, NULL, "");
@@ -73,38 +94,12 @@ long mem_setup(const Dtb *dtb) {
 	
 	size_t num_mem_regions = (swap32_from_be(memory_reg_p->len) / sizeof(uint32_t)) / 4;
 	for (size_t i = 0; i < num_mem_regions; i += 4) {
-		uintptr_t mem_start = fdt_get_cell(memory_reg_p, address_cells, i);
-		uintptr_t mem_end = mem_start + fdt_get_cell(memory_reg_p, size_cells, i + 2);
-		
-		if(	(mem_start < (uintptr_t)__start && mem_end < (uintptr_t)__start) ||
-			(mem_start > kernel_end && mem_end > kernel_end)) {
-			// the memory region is fully outside the kernel, so free the whole thing
+		uintptr_t mem_start = kernel_end;
 
-			free_range(mem_start, mem_end);
-		} else if(mem_start > (uintptr_t)__start && mem_end < kernel_end) {
-			// do nothing since the memory region is fully inside the kernel
+		// memory start + memory end
+		uintptr_t mem_end = fdt_get_cell(memory_reg_p, address_cells, i) + fdt_get_cell(memory_reg_p, size_cells, i + 2);
 
-		} else if(mem_start < (uintptr_t)__start && 
-			(mem_end > (uintptr_t)__start && mem_end < kernel_end)) {
-			// start is outside the kernel, but end is inside
-
-			// free from mem_start to __start
-			free_range(mem_start, PAGE_ROUND_DOWN((uintptr_t)__start));
-		} else if(mem_end > kernel_end && 
-			(mem_start > (uintptr_t)__start && mem_start < kernel_end)) {
-			// start is inside the kernel, but end is outside
-
-			// free from kernel_end to mem_end
-			free_range(PAGE_ROUND_UP(kernel_end), mem_end);
-		} else if(mem_start < (uintptr_t)__start && mem_end > kernel_end) {
-			// mem_start is before __start but mem_end if after kernel_end
-			// this means the kernel is fully inside the memory region
-
-			// free from mem_start to __start
-			free_range(mem_start, PAGE_ROUND_DOWN((uintptr_t)__start));
-			// free from kernel_end to mem_end
-			free_range(PAGE_ROUND_UP(kernel_end), mem_end);
-		}
+		kfree_range(mem_start, mem_end);
 	}
 
 	return 0;

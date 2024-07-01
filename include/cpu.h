@@ -6,16 +6,16 @@
 
 typedef int64_t Hartid;
 
-typedef struct Hart {
+struct Hart {
 	Hartid id;
 
 	long intr_npush;
 	long intr_initial; // state before we pushed interupts
-} Hart;
+};
 
-void hart_init(Hartid id, Hart* hart);
+void hart_init(Hartid id, struct Hart* hart);
 
-Hart *hart(void);
+struct Hart *hart(void);
 
 // hardware interupts
 void inter_push(void);

@@ -29,21 +29,6 @@ typedef uint64_t PageTableEntry;
 #define FREE_GIGA_CHUNK (FREE_MEGA_CHUNK * 512) // 1 GiB
 #define FREE_TERA_CHUNK (FREE_GIGA_CHUNK * 512) // 512 GiB
 
-// Free list for physical memory
-typedef struct FreeList {
-	struct Freelist *next;
-	/* Page the size of the free chunk must be alligned to it's size */
-	size_t size; 
-} FreeList;
-
-typedef struct KernelMemoryMap {
-	PageTableEntry *virt_kernel_pgt;
-	PageTableEntry *phys_kernel_pgt;
-	FreeList *free_list;
-	Dtb *dtb_phys;
-	Spinlock spinlock;
-} KernelMemoryMap;
-
 #endif /* !__ASSEMBLY__ */
 
 #endif /* VMEM_H */

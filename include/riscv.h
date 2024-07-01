@@ -10,14 +10,14 @@
 #define SSTATUS_UIE (1L << 0)  // User Interrupt Enable
 
 // returns what was last in SSTATUS.SIE
-inline long interupts_off(void) {
+static inline long interupts_off(void) {
 	long status;
 	// control register read and set immediate
 	asm volatile ("csrrsi %0, sstatus, 0b00010" : "=r" (status));
 	return (status & SSTATUS_SIE) >> 1;
 }
 
-inline void interupts_on(long status) {
+static inline void interupts_on(long status) {
 	register long clobber;
 	// control register read and clear
 	asm volatile ("csrrc %0, sstatus, %1" 

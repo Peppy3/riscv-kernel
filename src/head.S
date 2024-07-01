@@ -57,14 +57,16 @@ _start:
 	la sp, __boot_core_stack_bottom
 	addi sp, sp, -16
 
-	/* Set up and enable VM */
+	// store a0 and a1 is "safe" registers
 	mv s0, a0
 	mv s1, a1
-	mv a0, a1
 
-	call mem_setup
+	/* Set up and enable VM */
+	call kmem_init
 	
-	j boot_spin
+	//j boot_spin
+	mv a0, s0
+	mv a1, s1
 
 	tail kmain
 	.cfi_endproc
@@ -73,5 +75,4 @@ boot_spin:
 	.cfi_startproc
 	wfi
 	j boot_spin
-	
 	.cfi_endproc
