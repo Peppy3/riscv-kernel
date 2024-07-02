@@ -45,13 +45,16 @@ _start:
 	.cfi_startproc
 	csrw sie, zero
 	csrw sip, zero
+	csrw sscratch, zero
+	la a3, arch_trap
+	csrw stvec, a3
 
 	/* 
 	 * Disable floating point and vector code in the kernel and make the 
 	 * operations trap.
 	 */
-	//li t0, 0x6600
-	//csrw sstatus,t0 
+	li t0, 0x6600
+	csrw sstatus,t0 
 
 	/* set up initial stack pointer */
 	la sp, __boot_core_stack_bottom
@@ -61,16 +64,16 @@ _start:
 	mv s0, a0
 	mv s1, a1
 
-	/* Set up and enable VM */
+	// Set up and enable Virtual Memory
+	// returns new dtb location
 	call kmem_init
-	
-	//j boot_spin
+	mv a1, a0
 	mv a0, s0
-	mv a1, s1
 
 	tail kmain
 	.cfi_endproc
 
+.global boot_spin
 boot_spin:
 	.cfi_startproc
 	wfi

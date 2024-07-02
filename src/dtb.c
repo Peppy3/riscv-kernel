@@ -35,7 +35,7 @@ uint32_t dtb_size(const Dtb *dtb) {
 }
 
 DtbRsmapEntry *dtb_rsmap_iter_get(const Dtb *dtb) {
-	return (void *)((uint8_t*)dtb + dtb->off_mem_rsvmap);
+	return (DtbRsmapEntry *)((uint8_t*)dtb + swap32_from_be(dtb->off_mem_rsvmap));
 }
 
 int dtb_rsmap_next(DtbRsmapEntry **iterator) {
@@ -43,11 +43,12 @@ int dtb_rsmap_next(DtbRsmapEntry **iterator) {
 	
 	if (entry == NULL) return 0;
 	
-	entry = (DtbRsmapEntry *)((uint8_t *)entry + (sizeof(uint64_t) * 2));
 	if (entry->size == 0 && entry->addr == 0) {
 		*iterator = NULL;
 		return 0;
 	}
+	entry = (DtbRsmapEntry *)((uint8_t *)entry + (sizeof(uint64_t) * 2));
+
 	*iterator = entry;
 	return 1;
 }
@@ -59,17 +60,16 @@ int dtb_rsmap_next(DtbRsmapEntry **iterator) {
 #define FDT_NOP        0x04000000
 #define FDT_END        0x09000000
 
-char *fdt_get_name(const Dtb *dtb, FdtProp *prop) {
+static char *fdt_get_name(const Dtb *dtb, FdtProp *prop) {
 	char *dt_strings = (char *)dtb + swap32_from_be(dtb->off_dt_strings);
 	return dt_strings + swap32_from_be(prop->nameoff);
 }
 
-// size should be a big endian unsinged integer of how many number of u32 the cell has
+// size should be a big endian unsinged integer of how many number of u32 values the cell has
 unsigned long fdt_get_cell(const FdtProp *prop, uint32_t size, const uint32_t idx) {
 	unsigned long cell = 0;
 	
 	for (uint32_t i = idx; i < idx + size; i++) {
-		// 0 << 32 = 0
 		cell = (cell << (sizeof(uint32_t) * 8)) + swap32_from_be(prop->val[i]);
 	}
 
@@ -89,7 +89,7 @@ FdtNode *fdt_get_node(const Dtb *dtb, const FdtNode *start_node, const char *sea
 		current += (sizeof(FdtNode) + strlen(start_node->name) + 4) >> 2;
 	}
 
-	int64_t level = 0;
+	long level = 0;
 	while (*current != FDT_END) {
 		
 		// if we end up at a negative level, we are out of the searching scope
@@ -130,16 +130,17 @@ FdtNode *fdt_get_node(const Dtb *dtb, const FdtNode *start_node, const char *sea
 // returns NULL if not found or has any errors
 FdtProp *fdt_get_prop(const Dtb *dtb, const FdtNode *start_node, const char *search_name) {
 	uint32_t *current = (uint32_t *)start_node;
-	current += (sizeof(FdtNode) + strlen(start_node->name) + 4) >> 2;
+	current += (sizeof(struct FdtNode) + strlen(start_node->name) + 4) >> 2;
 	
 	int64_t level = 0;
 	while (*current != FDT_END) {
 		// if we end up at a negative level, we are out of the searching scope
 		if (level < 0) return NULL;
+
 		if (*current == FDT_NODE_BEGIN) { 
 			FdtNode *node = (FdtNode *)current;
 
-			current += (sizeof(FdtNode) + strlen(node->name) + 4) >> 2;
+			current += (sizeof(struct FdtNode) + strlen(node->name) + 4) >> 2;
 
 			level++;
 		}
@@ -171,5 +172,4 @@ FdtProp *fdt_get_prop(const Dtb *dtb, const FdtNode *start_node, const char *sea
 
 	return NULL;
 }
-
 

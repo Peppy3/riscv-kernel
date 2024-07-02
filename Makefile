@@ -50,8 +50,8 @@ $(KERN_IMG): $(KERN_ELF)
 
 # Link everything 
 $(KERN_ELF): $(OFILES)
-	@echo "-O1 --no-dynamic-linker -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP)"
-	$(LD) -O1 --no-dynamic-linker -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP) $+ -o $@
+	@echo "-T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP)"
+	$(LD) -T $(LINKERSCRIPT) -Map=$(KERN_LINK_MAP) $+ -o $@
 
 $(BUILD_DIR)/%.S.o: $(SRC_DIR)/%.S
 	@mkdir -p $(dir $@)

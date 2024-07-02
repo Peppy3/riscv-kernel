@@ -59,7 +59,7 @@ void kfree_range(uintptr_t phys_start, uintptr_t phys_end) {
 
 /* This runs in early boot. It get called from asm */
 __attribute__ ((noplt))
-long kmem_init(Hartid hartid, Dtb *dtb) {
+Dtb *kmem_init(Hartid hartid, Dtb *dtb) {
 	// temp hart struct so we can use spinlocks
 	struct Hart tmp_hart;
 	hart_init(hartid, &tmp_hart);
@@ -68,26 +68,25 @@ long kmem_init(Hartid hartid, Dtb *dtb) {
 	spinlock_init(&kernelMemoryMap.lock);
 
 	size_t dtb_len = dtb_size(dtb);
-	//dtb = memcpy((void *)PAGE_ROUND_UP((uintptr_t)&__end), dtb, dtb_len);
+	// copy to a known location
+	dtb = memcpy((void *)PAGE_ROUND_UP((uintptr_t)__end), dtb, dtb_len);
 
-	uintptr_t kernel_end = PAGE_ROUND_UP((((uintptr_t)dtb + dtb_len)> (uintptr_t)__end) 
-			? (uintptr_t)dtb + dtb_len : (uintptr_t)__end);
-		//PAGE_ROUND_UP((uintptr_t)dtb + dtb_len);
+	uintptr_t kernel_end = PAGE_ROUND_UP((uintptr_t)dtb + dtb_len);
 	
 	// get the available memory from the dtb
 	FdtNode *root_node_p = fdt_get_node(dtb, NULL, "");
-	if (root_node_p == NULL) return -1;
+	if (root_node_p == NULL) return NULL;
 
 	FdtProp *address_cells_p = fdt_get_prop(dtb, root_node_p, "#address-cells");
-	if (address_cells_p == NULL) return -1;
+	if (address_cells_p == NULL) return NULL;
 	FdtProp *size_cells_p = fdt_get_prop(dtb, root_node_p, "#size-cells");
-	if (size_cells_p == NULL) return -1;
+	if (size_cells_p == NULL) return NULL;
 	
 	FdtNode *memory_node_p = fdt_get_node(dtb, root_node_p, "memory");
-	if (memory_node_p == NULL) return -1;
+	if (memory_node_p == NULL) return NULL;
 
 	FdtProp *memory_reg_p = fdt_get_prop(dtb, memory_node_p, "reg");
-	if (memory_reg_p == NULL) return -1;
+	if (memory_reg_p == NULL) return NULL;
 	
 	uintptr_t address_cells = fdt_get_cell(address_cells_p, 1, 0);
 	uintptr_t size_cells = fdt_get_cell(size_cells_p, 1, 0);
@@ -102,5 +101,5 @@ long kmem_init(Hartid hartid, Dtb *dtb) {
 		kfree_range(mem_start, mem_end);
 	}
 
-	return 0;
+	return dtb;
 }

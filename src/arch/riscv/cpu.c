@@ -27,6 +27,7 @@ void inter_push(void) {
 void inter_pop(void) {
 	/*
 	if (cpu()->intr_npush < 1) 
+		// TODO: panic!
 		panic("inter_push");
 */
 	hart()->intr_npush -= 1;

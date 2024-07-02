@@ -9,6 +9,7 @@ typedef struct Dtb Dtb;
 #endif
 
 // verif magic and version
+// returns true if it is good
 int dtb_verify(const Dtb *dtb);
 
 // total size of the dtb ram file

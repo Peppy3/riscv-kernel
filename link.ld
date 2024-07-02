@@ -13,7 +13,7 @@ SECTIONS {
 	 * Boot location of the kernel.
 	 * We want to move up to the negative space as quickly as possible
 	 */
-	. = 0x84000000;
+	. = 0x80200000;
 	PROVIDE(__start = .);
 	.text : {
 		__boot_start = .;
