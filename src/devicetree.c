@@ -22,15 +22,14 @@ typedef struct DtNode {
 	uint32_t childrenIdx;
 	uint32_t childrenNum;
 	uint32_t propNum;
-	// if propNum == 0, this is NULL
-	DtProp *props; 
+	// if propNum == 0, this is 0 too
+	uint32_t propsOff; // offset
 } DtNode;
 
 typedef struct Devicetree {
-	DtProp *props;
-	DtProp *lastProp; // used during conversion, after conversion, it points to end of struct
+	uint32_t size;
 	uint32_t treeSize; // number of total Nodes
-	DtNode *nodes;
+	DtNode nodes[];
 } Devicetree;
 
 #define DEVICETREE_IMPLEMENTATION
@@ -143,7 +142,6 @@ static uint32_t count_nodes(const FdtNode *start_node) {
 		   	return count;
 		}
 		else {
-			debug_printf("count_nodes(): unknown token 0x%x at: %p", *current, current);
 			return count;
 		}
 	}
@@ -157,7 +155,7 @@ static void converter_recursive(const Dtb *dtb, Devicetree *dt, uint32_t *curren
 	dt->nodes[slot].parentIdx = parentIdx;
 	dt->nodes[slot].childrenIdx = dt->treeSize;
 	dt->nodes[slot].propNum = 0;
-	dt->nodes[slot].props = dt->lastProp;
+	dt->nodes[slot].propsOff = dt->size;
 	if(slot != 0) { // if we are not the root
 		// FIXME: implement some sort of assert
 		//assert(strlen(node->name)<66); // unexpectedly long name
@@ -184,25 +182,25 @@ static void converter_recursive(const Dtb *dtb, Devicetree *dt, uint32_t *curren
 
 			char *name = fdt_get_name(dtb, prop);
 
-			memset(dt->lastProp->name, 0, 32);
+			DtProp *last = (DtProp*)((uint8_t*)dt + dt->size);
+			memset(last->name, 0, 32);
 			// FIXME: implement some sort of assert
 			//assert(strlen(name)<32); // out of spec
-			memcpy(dt->lastProp->name, name, strlen(name));
-			dt->lastProp->len = swap32_from_be(prop->len);
-			memcpy(dt->lastProp->val, prop->val, swap32_from_be(prop->len));
-			dt->lastProp = dt->lastProp + sizeof(DtProp) + swap32_from_be(prop->len);
+			memcpy(last->name, name, strlen(name));
+			last->len = swap32_from_be(prop->len);
+			memcpy(last->val, prop->val, swap32_from_be(prop->len));
+			dt->size += sizeof(DtProp) + swap32_from_be(prop->len);
 			dt->nodes[slot].propNum++;
 		}
 		else if (*current == FDT_NOP) {
 		   	current += 1;
 		}
 		else {
-			debug_printf("converter_recursive(): unknown token 0x%x at: %p", *current, current);
 			return;
 		}
 	}
 	if(dt->nodes[slot].propNum == 0)
-		dt->nodes[slot].props = NULL;
+		dt->nodes[slot].propsOff = 0;
 
 	uint32_t nodeCount = count_nodes(node);
 	dt->nodes[slot].childrenNum = nodeCount;
@@ -225,7 +223,6 @@ static void converter_recursive(const Dtb *dtb, Devicetree *dt, uint32_t *curren
 			   	break;
 			}
 			else {
-				debug_printf("converter_recursive(): unknown token 0x%x at: %p", *current, current);
 				return;
 			}
 		}
@@ -236,12 +233,10 @@ static void converter_recursive(const Dtb *dtb, Devicetree *dt, uint32_t *curren
 int dt_convert_dtb(const Dtb *dtb, Devicetree *dt) {
 	if(!dtb_verify(dtb)) return 0;
 	
-	uint32_t size = count_dtb_nodes(dtb);
-	if(size == 0) return 0;
+	uint32_t nodeNum = count_dtb_nodes(dtb);
+	if(nodeNum == 0) return 0;
 
-	dt->nodes = (DtNode*)(dt + sizeof(Devicetree));
-	dt->props = (DtProp*)(dt->nodes + size * sizeof(DtNode));
-	dt->lastProp = dt->props;
+	dt->size = sizeof(Devicetree) + nodeNum * sizeof(DtNode);
 
 	uint32_t *current = fdt_get_dt_struct(dtb);
 	dt->treeSize = 1;
@@ -264,11 +259,9 @@ int dt_convert_dtb(const Dtb *dtb, Devicetree *dt) {
 	return 1;
 };
 
-
-
 static int is_dt_valid(const Devicetree *dt) {
 	// some sanity checks
-	if(dt->props == NULL || dt->treeSize == 0) return 0;
+	if(dt->size == 0 || dt->treeSize == 0) return 0;
 	return 1;
 }
 
@@ -277,14 +270,14 @@ int dt_is_node_valid(const DtNode *node) {
 	// some sanity checks
 	if(node == NULL) return 0;
 	if(node->name[0] == '\0') return 0;
-	if(node->propNum != 0 && node->props == NULL) return 0;
+	if(node->propNum != 0 && node->propsOff == 0) return 0;
 	return 1;
 }
 
 // returns the root node
 DtNode* dt_root(const Devicetree *dt) {
 	if (!is_dt_valid(dt)) return NULL;
-	return dt->nodes;
+	return (DtNode*)dt->nodes;
 }
 
 // if root returns 1 else 0
@@ -299,7 +292,7 @@ uint32_t dt_get_all_children(const Devicetree *dt, const DtNode *node, DtNode** 
 	if (node->childrenNum == 0 || !is_dt_valid(dt) || !dt_is_node_valid(node)) {
 		return 0;
 	}
-	*children = &dt->nodes[node->childrenIdx];
+	*children = (DtNode*)&dt->nodes[node->childrenIdx];
 	return node->childrenNum;
 }
 
@@ -309,7 +302,7 @@ DtNode* dt_get_child_by_name(const Devicetree *dt, const DtNode *node, const cha
 		return NULL;
 	}
 	for (uint32_t i = 0; i < node->childrenNum; i++) {
-		DtNode *curr = dt->nodes + node->childrenIdx + i;
+		DtNode *curr = (DtNode*)&dt->nodes[node->childrenIdx + i];
 		if (strncmp((char*)curr, name, 66) == 0) {
 			return curr;
 		}
@@ -325,7 +318,7 @@ uint32_t dt_get_all_properties(const Devicetree *dt, const DtNode *node, DtProp*
 	if (node->propNum == 0 || !is_dt_valid(dt) || !dt_is_node_valid(node)) {
 		return 0;
 	}
-	*props = node->props;
+	*props = (DtProp*)((uint8_t*)dt + node->propsOff);
 	return node->propNum;
 }
 
@@ -334,7 +327,7 @@ DtProp* dt_get_property_by_name(const Devicetree *dt, const DtNode *node, const 
 	if (node->propNum == 0 || !is_dt_valid(dt) || !dt_is_node_valid(node)) {
 		return NULL;
 	}
-	DtProp *curr = node->props;
+	DtProp *curr = (DtProp*)((uint8_t*)dt + node->propsOff);
 	for (uint32_t i = 0; i < node->propNum; i++) {
 		if (strncmp(curr->name, name, 32) == 0) {
 			return curr;
@@ -349,7 +342,7 @@ DtNode* dt_get_parent(const Devicetree *dt, const DtNode *node) {
 	if (!is_dt_valid(dt) || !dt_is_node_valid(node) || dt_is_root(node)) {
 		return NULL;
 	}
-	return dt->nodes + node->parentIdx;
+	return (DtNode*)(dt->nodes + node->parentIdx);
 }
 
 // returns the node name in the name argument
@@ -368,21 +361,22 @@ static void dt_print_prop(const DtProp *prop) {
 	debug_printf("%s;\n", prop->name);
 }
 
-static void dt_print_recursive(const Devicetree *dt, const DtNode *node, int depth) {
+static void dt_print_recursive(const Devicetree *dt, uint32_t nodeIdx, int depth) {
 	dt_print_depth_helper(depth);
+	DtNode *node = (DtNode*)&dt->nodes[nodeIdx];
 	debug_printf("%s {\n", node->name);
 
 	// print properties
-	DtProp* current = node->props;
+	uint8_t *current = ((uint8_t*)dt + node->propsOff);
 	for (uint32_t i = 0; i < node->propNum; i++) {
 		dt_print_depth_helper(depth+1);
-		dt_print_prop(current);
-		current += current->len + sizeof(DtProp);
+		dt_print_prop((DtProp*)current);
+		current += ((DtProp*)current)->len + sizeof(DtProp);
 	}
 
 	// print children
 	for (uint32_t i = 0; i < node->childrenNum; i++) {
-		DtNode* child = &dt->nodes[node->childrenIdx+i];
+		uint32_t child = node->childrenIdx + i;
 		dt_print_depth_helper(depth);
 		debug_puts("");
 		dt_print_recursive(dt, child, depth + 1);
@@ -392,6 +386,5 @@ static void dt_print_recursive(const Devicetree *dt, const DtNode *node, int dep
 }
 
 void dt_print(const Devicetree *dt) {
-	// this is fine, because first node is always the root
-	dt_print_recursive(dt, dt->nodes, 0);
+	dt_print_recursive(dt, 0, 0);
 }
