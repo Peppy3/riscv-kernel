@@ -39,6 +39,7 @@ void kmain(Hartid boot_hartid, Dtb *dtb) {
 
 	Devicetree *dt = (Devicetree*)((char*)dtb + dtb_size(dtb) + 64);
 	dt_convert_dtb(dtb, dt);
+	dt_print(dt);
 	debug_puts("going into an infinite_loop\n");
 	while (1) {
 		asm volatile ("wfi");

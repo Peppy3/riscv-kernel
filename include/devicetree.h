@@ -12,7 +12,7 @@ typedef struct DtNode DtNode;
 typedef struct DtProp {
 	char name[32]; // spec states it is strictly shorter than 32 characters
 	uint32_t len;  // lenght of val[]
-	uint32_t *val;
+	uint32_t val[];
 } DtProp;
 
 // converts flattened to normal device tree, returns 0 on error
@@ -50,5 +50,8 @@ DtNode *dt_get_parent(const Devicetree *dt, const DtNode *node);
 // note: 	if you cast the node's pointer to a char*, you will get the name of the node in a null terminated string,
 // 			but beware, you shouldn't modify it in that case
 void dt_get_node_name(const DtNode *node, char *name);
+
+// prints a text representation of the device tree
+void dt_print(const Devicetree *dt);
 
 #endif /* DEVICETREE_H */
