@@ -60,7 +60,7 @@ int dtb_rsmap_next(DtbRsmapEntry **iterator) {
 #define FDT_NOP        0x04000000
 #define FDT_END        0x09000000
 
-static char *fdt_get_name(const Dtb *dtb, FdtProp *prop) {
+char *fdt_get_name(const Dtb *dtb, FdtProp *prop) {
 	char *dt_strings = (char *)dtb + swap32_from_be(dtb->off_dt_strings);
 	return dt_strings + swap32_from_be(prop->nameoff);
 }
@@ -173,3 +173,6 @@ FdtProp *fdt_get_prop(const Dtb *dtb, const FdtNode *start_node, const char *sea
 	return NULL;
 }
 
+uint32_t *fdt_get_dt_struct(const Dtb *dtb) {
+	return (uint32_t *)((uint8_t *)dtb + swap32_from_be(dtb->off_dt_struct));
+}

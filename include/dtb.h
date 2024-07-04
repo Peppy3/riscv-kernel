@@ -52,4 +52,8 @@ FdtNode *fdt_get_node(const Dtb *dtb, const FdtNode *start_node, const char *sea
 // returns NULL if not found or has any errors
 FdtProp *fdt_get_prop(const Dtb *dtb, const FdtNode *start_node, const char *search_name);
 
+uint32_t *fdt_get_dt_struct(const Dtb *dtb);
+
+char *fdt_get_name(const Dtb *dtb, FdtProp *prop);
+
 #endif /* DTB_H */

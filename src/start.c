@@ -6,6 +6,7 @@
 
 #include <sbi.h>
 #include <dtb.h>
+#include <devicetree.h>
 
 #include <riscv.h>
 
@@ -32,11 +33,13 @@ void kmain(Hartid boot_hartid, Dtb *dtb) {
 				(void *)(swap64_from_be(rsmap->addr) + swap64_from_be(rsmap->size)));
 	} while (dtb_rsmap_next(&rsmap));
 	else {
-		debug_puts("No Reserved memory blocks");
+		debug_puts("No Reserved memory blocks\n");
 	}
+	debug_puts("Converting Dtb");
 
-
-	debug_puts("\ngoing into an infinite_loop");
+	Devicetree *dt = (Devicetree*)((char*)dtb + dtb_size(dtb) + 64);
+	dt_convert_dtb(dtb, dt);
+	debug_puts("going into an infinite_loop\n");
 	while (1) {
 		asm volatile ("wfi");
 	}
