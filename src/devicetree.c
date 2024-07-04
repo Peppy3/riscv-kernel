@@ -10,14 +10,9 @@ typedef struct DtProp DtProp;
 // the idea here is that these DtNodes are constant length
 // so we can just put them in an array and access them by index
 typedef struct DtNode {
-	// node-name@unit-address:
-	// 	since node-name is strictly 1-31 characters long,
-	// 	and we can assume the unit-address is strictly shorter than 32 characters,
-	// 	66 character should be sufficient for every Node
-
 	// note how this is placed at the start of the struct,
 	// so you can use it in functions that take null-terminated strings as arguments
-	char name[66];
+	char name[68];
 	uint32_t parentIdx;
 	uint32_t childrenIdx;
 	uint32_t childrenNum;
@@ -257,6 +252,10 @@ int dt_convert_dtb(const Dtb *dtb, Devicetree *dt) {
 
 	converter_recursive(dtb, dt, current, 0, 0);
 	return 1;
+};
+
+uint32_t dt_get_size(const Devicetree *dt) {
+	return dt->size;
 };
 
 static int is_dt_valid(const Devicetree *dt) {

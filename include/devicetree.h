@@ -18,6 +18,9 @@ typedef struct DtProp {
 // converts flattened to normal device tree, returns 0 on error
 int dt_convert_dtb(const Dtb *dtb, Devicetree *dt);
 
+// returns size in bytes
+uint32_t dt_get_size(const Devicetree *dt);
+
 // returns the root node
 DtNode *dt_root(const Devicetree *dt);
 
