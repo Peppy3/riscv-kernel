@@ -1,5 +1,4 @@
 // System trap vector. All traps go to here.
-// sscratch CSR should be zero when comming from supervisor mode
 
 .section ".text"
 
@@ -7,10 +6,13 @@
 .global arch_trap
 arch_trap:
 	// swap sscratch and tp so we can safetly store away all of the other registers
+	// sscratch CSR should be zero when comming from supervisor mode
 	csrrw tp, sscratch, tp 
 
-	//TODO: check if we're comming from supervisor or user mode
-	//bneq zero, tp, ...
+	// If we are comming from kernel code, skip setting up the 
+	// stack pointer as it's already set up
+	// TODO: set up stack pointer before saving all registers comming from user mode
+	//beq zero, tp, ...
 
 	sd zero, 0(tp) // for completeness
 	sd ra, 8(tp)
@@ -48,5 +50,7 @@ arch_trap:
 	csrrw tp, sscratch, tp
 	sd tp, 32(tp)
 	
-	j boot_spin
+.Ltrap_spin:
+	wfi
+	j .Ltrap_spin
 

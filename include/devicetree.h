@@ -9,10 +9,12 @@ typedef struct DtNode DtNode;
 
 #include <dtb.h>
 
+#define DT_PROP_NAME_MAX 32
+ 
 typedef struct DtProp {
-	char name[32]; // spec states it is strictly shorter than 32 characters
+	char name[DT_PROP_NAME_MAX]; // spec states it is strictly shorter than 32 characters
 	uint32_t len;  // lenght of val[]
-	uint32_t val[];
+	uint32_t val[]; // check spec for endianess (most likely big endian)
 } DtProp;
 
 // converts flattened to normal device tree, returns 0 on error
@@ -30,9 +32,17 @@ int dt_is_root(const DtNode *node);
 // if node is valid returns 1 else 0
 int dt_is_node_valid(const DtNode *node);
 
-// returns the number of children and a pointer into the children argument
-// if there are no children, returns 0
-uint32_t dt_get_all_children(const Devicetree *dt, const DtNode *node, DtNode** children);
+// returns a pointer into the children argument
+// the iter argument is to keep track of where the iterator is and should not be used as an index
+// if there are no children, children returns NULL and iter returns 0
+void dt_get_child_iterator(const Devicetree *dt, const DtNode *node, void **children, uint32_t *iter);
+
+// returns a pointer to the next node from the iterator gotten from dt_get_child_iterator() and
+// iterates to the next child in the sequence
+// if the iterator is done iterating, it returns NULL
+DtNode *dt_child_iter_next(void **children, uint32_t *iter);
+
+// FIXME: make an iter method that only returns when matching a name
 
 // returns the child
 DtNode *dt_get_child_by_name(const Devicetree *dt, const DtNode *node, const char* name);
@@ -50,7 +60,7 @@ DtProp *dt_get_property_by_name(const Devicetree *dt, const DtNode *node, const 
 DtNode *dt_get_parent(const Devicetree *dt, const DtNode *node);
 
 // returns the node name in the name argument
-// note: 	if you cast the node's pointer to a char*, you will get the name of the node in a null terminated string,
+// note: 	if you cast the node's pointer to a const char*, you will get the name of the node in a null terminated string,
 // 			but beware, you shouldn't modify it in that case
 void dt_get_node_name(const DtNode *node, char *name);
 

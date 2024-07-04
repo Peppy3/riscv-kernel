@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-// differs from POSIX standard C func index as it ends the search at a null byte
+// returns the index at the first char ch found in string s
 size_t stridx(const char *s, int ch);
 
 size_t strlen(const char *s);

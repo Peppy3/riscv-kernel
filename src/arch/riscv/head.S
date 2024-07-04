@@ -1,6 +1,7 @@
 /* ARCH = riscv64 */
 
 #include <asm.h>
+#include <vmem.h>
 
 #ifdef DEBUG
 #define BSS_FILL 0x0A
@@ -46,24 +47,41 @@ _start:
 	csrw sie, zero
 	csrw sip, zero
 	csrw sscratch, zero
-	la a3, arch_trap
-	csrw stvec, a3
+	la a5, arch_trap
+	csrw stvec, a5
 
 	/* 
 	 * Disable floating point and vector code in the kernel and make the 
 	 * operations trap.
 	 */
-	li t0, 0x6600
-	csrw sstatus,t0 
+	li a5, 0x6600
+	csrw sstatus, a5
 
 	/* set up initial stack pointer */
-	la sp, __boot_core_stack_bottom
+	la sp, __start
 	addi sp, sp, -16
 
 	// store a0 and a1 is "safe" registers
 	mv s0, a0
 	mv s1, a1
 
+	// convert the dtb into our own tree (tbh, I don't know why we did this)
+	mv a0, a1
+	la a1, __end
+	
+	li a5, PAGE_SIZE
+	add a1, a1, a5
+	addi a5, a5, -1
+	not a5, a5
+	and a1, a1, a5
+
+	call dt_convert_dtb
+
+	//bnez a0, .Lcont_mem
+
+	j boot_spin
+
+.Lcont_mem:
 	// Set up and enable Virtual Memory
 	// returns new dtb location
 	call kmem_init

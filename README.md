@@ -4,7 +4,7 @@
 ### Depenencies
 
 Building:
-- riscv gcc toolchain
+- riscv64-unknown-elf gcc toolchain
 - u-boot-tools (for building u-boot image)
 - dtc (if compiling specified dts file)
 

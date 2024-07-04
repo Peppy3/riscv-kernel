@@ -16,43 +16,41 @@ SECTIONS {
 	. = 0x80200000;
 	PROVIDE(__start = .);
 	.text : {
-		__boot_start = .;
+		PROVIDE(__text_start = .);
 		/* Header for linux kernel image */
 		KEEP(*(.boot.header))
 		/* Our boot code before we jump to higher half */
 		KEEP(*(.boot.entry))
 		__boot_end = .;
 
-
-		__text_start = .;
-		KEEP(*(.text))
 		/* trampoline */
 		. = ALIGN(4096);
 		__trampoline_start = .;
 		*(.trampoline)
-		/*
-		ASSERT(. - __trampoline_start == 4096, 
+		. = ALIGN(4096);
+		ASSERT(. - __trampoline_start != 4096, 
 			"error: trampoline larger than one page");
-		*/
+
+		KEEP(*(.text))
 	} :text
 	. = ALIGN(4096);
-	__text_end = .;
+	PROVIDE(__text_end = .);
 
-	__rodata_start = .;
+	PROVIDE(__rodata_start = .);
 	.rodata : {
 		*(.rodata)
 	} :rodata
 	. = ALIGN(4096);
-	__rodata_end = .;
+	PROVIDE(__rodata_end = .);
 
-	__data_start = .;
+	PROVIDE(__data_start = .);
 	.data : {
 		*(.data)
 	} :data
 	. = ALIGN(4096);
-	__data_end = .;
+	PROVIDE(__data_end = .);
 
-	__bss_start = .;
+	PROVIDE(__bss_start = .);
 	.bss : {
 		bss = .;
 		/* Compiler stuff */
@@ -69,7 +67,7 @@ SECTIONS {
 		. = ALIGN(4096);
 	} :data
 	. = ALIGN(4096);
-	__bss_end = .;
+	PROVIDE(__bss_end = .);
 	
 	PROVIDE(__end = .);
 }

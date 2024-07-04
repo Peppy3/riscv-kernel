@@ -7,12 +7,14 @@
 
 typedef struct DtProp DtProp;
 
+#define DT_NODE_NAME_MAX 68
+
 // the idea here is that these DtNodes are constant length
 // so we can just put them in an array and access them by index
 typedef struct DtNode {
 	// note how this is placed at the start of the struct,
 	// so you can use it in functions that take null-terminated strings as arguments
-	char name[68];
+	char name[DT_NODE_NAME_MAX];
 	uint32_t parentIdx;
 	uint32_t childrenIdx;
 	uint32_t childrenNum;
@@ -153,10 +155,10 @@ static void converter_recursive(const Dtb *dtb, Devicetree *dt, uint32_t *curren
 	dt->nodes[slot].propsOff = dt->size;
 	if(slot != 0) { // if we are not the root
 		// FIXME: implement some sort of assert
-		//assert(strlen(node->name)<66); // unexpectedly long name
+		//assert(strlen(node->name)<DT_NODE_NAME_MAX); // unexpectedly long name
 		memcpy(dt->nodes[slot].name, node->name, strlen(node->name));
 	} else { // if we are root, set name to '/'
-		memset(dt->nodes[slot].name, 0, 66);
+		memset(dt->nodes[slot].name, 0, DT_NODE_NAME_MAX);
 		dt->nodes[slot].name[0] = '/';
 	}
 	
@@ -178,7 +180,7 @@ static void converter_recursive(const Dtb *dtb, Devicetree *dt, uint32_t *curren
 			char *name = fdt_get_name(dtb, prop);
 
 			DtProp *last = (DtProp*)((uint8_t*)dt + dt->size);
-			memset(last->name, 0, 32);
+			memset(last->name, 0, DT_PROP_NAME_MAX);
 			// FIXME: implement some sort of assert
 			//assert(strlen(name)<32); // out of spec
 			memcpy(last->name, name, strlen(name));
@@ -285,14 +287,32 @@ int dt_is_root(const DtNode *node) {
 	return 0;
 }
 
-// returns the number of children and a pointer into the children argument
-// if there are no children, returns 0
-uint32_t dt_get_all_children(const Devicetree *dt, const DtNode *node, DtNode** children) {
+// returns a pointer into the children arguemnts
+// the iter agument is to keep track of where the iterator is and should not be used as an index
+// if there are no children, children retruns NULL
+void dt_get_child_iterator(const Devicetree *dt, const DtNode *node, void **children, uint32_t *iter) {
 	if (node->childrenNum == 0 || !is_dt_valid(dt) || !dt_is_node_valid(node)) {
-		return 0;
+		*iter = 0;
+		*children = NULL;
+		return;
 	}
-	*children = (DtNode*)&dt->nodes[node->childrenIdx];
-	return node->childrenNum;
+	*iter = node->childrenNum;
+	*children = (void *)&dt->nodes[node->childrenIdx];
+	return;
+}
+
+// returns a pointer to the next node from the iterator gotten from dt_get_child_iterator() and
+// iterates to the next child in the sequence
+// if the iterator is done iterating, it returns NULL
+DtNode *dt_child_iter_next(void **children, uint32_t *iter) {
+	if (*iter == 0) {
+		*children = NULL;
+		return NULL;
+	}
+	*iter = *iter - 1;
+	DtNode *child = (DtNode *)*children;
+	*children = (void *)(child + 1);
+	return child;
 }
 
 // returns the child
@@ -302,7 +322,7 @@ DtNode* dt_get_child_by_name(const Devicetree *dt, const DtNode *node, const cha
 	}
 	for (uint32_t i = 0; i < node->childrenNum; i++) {
 		DtNode *curr = (DtNode*)&dt->nodes[node->childrenIdx + i];
-		if (strncmp((char*)curr, name, 66) == 0) {
+		if (strncmp((char*)curr, name, DT_NODE_NAME_MAX) == 0) {
 			return curr;
 		}
 	}
@@ -322,13 +342,13 @@ uint32_t dt_get_all_properties(const Devicetree *dt, const DtNode *node, DtProp*
 }
 
 // returns the property
-DtProp* dt_get_property_by_name(const Devicetree *dt, const DtNode *node, const char* name) {
+const DtProp* dt_get_property_by_name(const Devicetree *dt, const DtNode *node, const char* name) {
 	if (node->propNum == 0 || !is_dt_valid(dt) || !dt_is_node_valid(node)) {
 		return NULL;
 	}
 	DtProp *curr = (DtProp*)((uint8_t*)dt + node->propsOff);
 	for (uint32_t i = 0; i < node->propNum; i++) {
-		if (strncmp(curr->name, name, 32) == 0) {
+		if (strncmp(curr->name, name, DT_PROP_NAME_MAX) == 0) {
 			return curr;
 		}
 		curr += curr->len + sizeof(DtProp);
@@ -345,8 +365,11 @@ DtNode* dt_get_parent(const Devicetree *dt, const DtNode *node) {
 }
 
 // returns the node name in the name argument
-void dt_get_node_name(const DtNode *node, char *name) {
-	memcpy(name, (void*)node->name, 66);
+void dt_get_node_name(const DtNode *node, char *name, size_t size) {
+	// clamp size to max length
+	size = (size > DT_NODE_NAME_MAX) ? DT_NODE_NAME_MAX : size;
+
+	memcpy(name, (void*)node->name, size);
 }
 
 static void dt_print_depth_helper(int depth) {
